@@ -1,5 +1,7 @@
+using Newtonsoft.Json.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using TMPro;
 using UnityEngine;
 
@@ -30,12 +32,8 @@ public class GameManager : MonoBehaviour
     
    //프로퍼티: 변수인것처럼 쓰는 함수
     
-    private View view;
-    public View View
-    {
-        get { return view; }
-        set { view = value; }
-    }
+    public View view;
+
 
     private Controller controller;
     public Controller Controller
@@ -44,9 +42,10 @@ public class GameManager : MonoBehaviour
         set { controller = value; }
     }
 
-    private bool isCashSave;
-    private bool isBalanceSave;
-    
+    private int balance = 0;
+    private int cash = 0;
+    public TMP_InputField sendInput;
+
     private void Awake()
     {
         if(instance == null)
@@ -58,10 +57,23 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        filePath = Path.Combine(Application.persistentDataPath, signName.text +".json");
+        Debug.Log(filePath);
     }
+
+    public TMP_InputField idInput;
+    public TMP_InputField passwordInput;
+    public TMP_InputField signInId;
+    public TMP_InputField signInPassword;
+    public TMP_InputField signName;
+    public TMP_InputField signCash;
+    public TMP_InputField signBalance;
+    private string filePath;
+    public GameObject error;
     void Start()
     {
-        LoadUserData();
+        
     }
 
     
@@ -78,15 +90,77 @@ public class GameManager : MonoBehaviour
     }
     public void LoadUserData()
     {
-       
-        if(PlayerPrefs.HasKey("curCash"))
+
+        string json = File.ReadAllText(filePath);
+        JObject data = JObject.Parse(json);
+        UserData userData = new UserData(data);
+        
+    }
+    public void SaveJson()
+    {
+        if(string.IsNullOrEmpty(signName.text)
+            || string.IsNullOrEmpty(signInPassword.text)
+            || string.IsNullOrEmpty(signInId.text)
+            || string.IsNullOrEmpty(signCash.text)
+            || string.IsNullOrEmpty(signBalance.text))
         {
-             userData.cash = PlayerPrefs.GetInt("curCash", userData.cash);
+            error.SetActive(true);
+            return;
         }
-        if (PlayerPrefs.HasKey("curBalance"))
+        else
         {
-            userData.balance = PlayerPrefs.GetInt("curBalance", userData.balance);
+            int balance = int.Parse(signBalance.text);
+            int cash = int.Parse(signCash.text);
+            JObject json = new JObject();
+            json["name"] = signInId.text;
+            json["id"] = signInId.text;
+            json["password"] = balance;
+            json["balance"] = cash;
+            json["cash"] = signCash.text;
+
+            System.IO.File.WriteAllText(filePath, json.ToString());
+            Debug.Log("[SaveJson] 저장 완료");
+            Debug.Log("[SaveJson] filePath = " + filePath);
+            Debug.Log("[SaveJson] json = " + json.ToString());
         }
     }
 
+
+    
+
+    public void Login()
+    {
+      
+
+        string json = File.ReadAllText(filePath);
+        JObject data = JObject.Parse(json);
+
+        if ((string)data["id"] == idInput.text && (string)data["password"] == passwordInput.text)
+        {
+            GameManager.instance.view.OnPopBank();
+            GameManager.instance.userData = new UserData(data);
+        }
+
+        else
+        {
+            return;
+        }
+    }
+    public void SendBalance()
+    {
+        int balance = int.Parse(signBalance.text);
+        int cash = int.Parse(signCash.text);
+        if(File.Exists(filePath))
+        {
+            if (GameManager.instance.userData.balance < balance)
+            {
+                return;
+            }
+            else
+            {
+                
+            }
+        }
+        
+    }
 }

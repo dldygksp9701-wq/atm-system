@@ -1,12 +1,18 @@
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using static UnityEngine.UIElements.UxmlAttributeDescription;
 
 
 
 
-[System.Serializable]
+
+//[System.Serializable]
 public class UserData
 {
     public string name;
@@ -15,17 +21,13 @@ public class UserData
     public string id;
     public string password;
 
-    //회원가입을 하는 방식을 json으로 하려고 하는데 저번에 강의를 하신 jtoken을
-    //이용하려고 하는데 도저히 어떤 방식으로 해야 하는지 모르겠습니다.
-    //저번 강의 때는 json 데이터를 가져오는 것을 했다면 데이터를 json으로 저장을 해야하는데 알려주실수 있나요?
-
-    public UserData(string name, int balance, int cash, string id, string password)
+    public UserData(JObject json)
     {
-        this.name = name;
-        this.balance = balance;
-        this.cash = cash;
-        this.id = id;
-        this.password = password;
+        name = (string)json["name"];
+        balance = (int)json["balance"];
+        cash = (int)json["cash"];
+        id = (string)json["id"];
+        password = (string)json["password"];
     }
 
     public void AddBalance(int value)
@@ -41,6 +43,8 @@ public class UserData
         balance -= value;
         cash += value;
     }
+    
+
 }
 //들어오는거랑 가져가는거랑 다르면 프로퍼티를 사용한다.
 
